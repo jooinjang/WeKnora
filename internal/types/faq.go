@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// FAQChunkMetadata 定义 FAQ 条目在 Chunk.Metadata 中的结构
+// FAQChunkMetadata defines the structure of FAQ entries in Chunk.Metadata
 type FAQChunkMetadata struct {
 	StandardQuestion  string         `json:"standard_question"`
 	SimilarQuestions  []string       `json:"similar_questions,omitempty"`
@@ -20,21 +20,21 @@ type FAQChunkMetadata struct {
 	Source            string         `json:"source,omitempty"`
 }
 
-// GeneratedQuestion 表示AI生成的单个问题
+// GeneratedQuestion represents a single AI-generated question
 type GeneratedQuestion struct {
-	ID       string `json:"id"`       // 唯一标识，用于构造 source_id
-	Question string `json:"question"` // 问题内容
+	ID       string `json:"id"`       // Unique identifier, used to construct source_id
+	Question string `json:"question"` // Question content
 }
 
-// DocumentChunkMetadata 定义文档 Chunk 的元数据结构
-// 用于存储AI生成的问题等增强信息
+// DocumentChunkMetadata defines the metadata structure of document chunks
+// Used to store enhanced information such as AI-generated questions
 type DocumentChunkMetadata struct {
-	// GeneratedQuestions 存储AI为该Chunk生成的相关问题
-	// 这些问题会被独立索引以提高召回率
+	// GeneratedQuestions stores AI-generated related questions for this chunk
+	// These questions are independently indexed to improve recall rate
 	GeneratedQuestions []GeneratedQuestion `json:"generated_questions,omitempty"`
 }
 
-// GetQuestionStrings 返回问题内容字符串列表（兼容旧代码）
+// GetQuestionStrings returns a list of question content strings (compatible with legacy code)
 func (m *DocumentChunkMetadata) GetQuestionStrings() []string {
 	if m == nil || len(m.GeneratedQuestions) == 0 {
 		return nil
@@ -46,7 +46,7 @@ func (m *DocumentChunkMetadata) GetQuestionStrings() []string {
 	return result
 }
 
-// DocumentMetadata 解析 Chunk 中的文档元数据
+// DocumentMetadata parses document metadata from Chunk
 func (c *Chunk) DocumentMetadata() (*DocumentChunkMetadata, error) {
 	if c == nil || len(c.Metadata) == 0 {
 		return nil, nil
@@ -58,7 +58,7 @@ func (c *Chunk) DocumentMetadata() (*DocumentChunkMetadata, error) {
 	return &meta, nil
 }
 
-// SetDocumentMetadata 设置 Chunk 的文档元数据
+// SetDocumentMetadata sets the document metadata for Chunk
 func (c *Chunk) SetDocumentMetadata(meta *DocumentChunkMetadata) error {
 	if c == nil {
 		return nil
@@ -75,7 +75,7 @@ func (c *Chunk) SetDocumentMetadata(meta *DocumentChunkMetadata) error {
 	return nil
 }
 
-// Normalize 清理空白与重复项
+// Normalize cleans up whitespace and duplicate items
 func (m *FAQChunkMetadata) Normalize() {
 	if m == nil {
 		return
@@ -89,7 +89,7 @@ func (m *FAQChunkMetadata) Normalize() {
 	}
 }
 
-// FAQMetadata 解析 Chunk 中的 FAQ 元数据
+// FAQMetadata parses FAQ metadata from Chunk
 func (c *Chunk) FAQMetadata() (*FAQChunkMetadata, error) {
 	if c == nil || len(c.Metadata) == 0 {
 		return nil, nil
@@ -102,7 +102,7 @@ func (c *Chunk) FAQMetadata() (*FAQChunkMetadata, error) {
 	return &meta, nil
 }
 
-// SetFAQMetadata 设置 Chunk 的 FAQ 元数据
+// SetFAQMetadata sets FAQ metadata for Chunk
 func (c *Chunk) SetFAQMetadata(meta *FAQChunkMetadata) error {
 	if c == nil {
 		return nil
@@ -118,24 +118,24 @@ func (c *Chunk) SetFAQMetadata(meta *FAQChunkMetadata) error {
 		return err
 	}
 	c.Metadata = JSON(bytes)
-	// 计算并设置 ContentHash
+	// Calculate and set ContentHash
 	c.ContentHash = CalculateFAQContentHash(meta)
 	return nil
 }
 
-// CalculateFAQContentHash 计算 FAQ 内容的 hash 值
-// hash 基于：标准问 + 相似问（排序后）+ 反例（排序后）+ 答案（排序后）
-// 用于快速匹配和去重
+// CalculateFAQContentHash calculates the hash value of FAQ content
+// Hash is based on: standard question + similar questions (sorted) + negative examples (sorted) + answers (sorted)
+// Used for fast matching and deduplication
 func CalculateFAQContentHash(meta *FAQChunkMetadata) string {
 	if meta == nil {
 		return ""
 	}
 
-	// 创建副本并标准化
+	// Create a copy and normalize
 	normalized := *meta
 	normalized.Normalize()
 
-	// 对数组进行排序（确保相同内容产生相同 hash）
+	// Sort arrays (ensure same content produces same hash)
 	similarQuestions := make([]string, len(normalized.SimilarQuestions))
 	copy(similarQuestions, normalized.SimilarQuestions)
 	sort.Strings(similarQuestions)
@@ -148,7 +148,7 @@ func CalculateFAQContentHash(meta *FAQChunkMetadata) string {
 	copy(answers, normalized.Answers)
 	sort.Strings(answers)
 
-	// 构建用于 hash 的字符串：标准问 + 相似问 + 反例 + 答案
+	// Build string for hashing: standard question + similar questions + negative examples + answers
 	var builder strings.Builder
 	builder.WriteString(normalized.StandardQuestion)
 	builder.WriteString("|")
@@ -158,22 +158,22 @@ func CalculateFAQContentHash(meta *FAQChunkMetadata) string {
 	builder.WriteString("|")
 	builder.WriteString(strings.Join(answers, ","))
 
-	// 计算 SHA256 hash
+	// Calculate SHA256 hash
 	hash := sha256.Sum256([]byte(builder.String()))
 	return hex.EncodeToString(hash[:])
 }
 
-// AnswerStrategy 定义答案返回策略
+// AnswerStrategy defines the answer return strategy
 type AnswerStrategy string
 
 const (
-	// AnswerStrategyAll 返回所有答案
+	// AnswerStrategyAll returns all answers
 	AnswerStrategyAll AnswerStrategy = "all"
-	// AnswerStrategyRandom 随机返回一个答案
+	// AnswerStrategyRandom randomly returns one answer
 	AnswerStrategyRandom AnswerStrategy = "random"
 )
 
-// FAQEntry 表示返回给前端的 FAQ 条目
+// FAQEntry represents an FAQ entry returned to the frontend
 type FAQEntry struct {
 	ID                string         `json:"id"`
 	ChunkID           string         `json:"chunk_id"`
@@ -195,7 +195,7 @@ type FAQEntry struct {
 	ChunkType         ChunkType      `json:"chunk_type"`
 }
 
-// FAQEntryPayload 用于创建/更新 FAQ 条目的 payload
+// FAQEntryPayload is the payload used for creating/updating FAQ entries
 type FAQEntryPayload struct {
 	StandardQuestion  string          `json:"standard_question"    binding:"required"`
 	SimilarQuestions  []string        `json:"similar_questions"`
@@ -213,40 +213,40 @@ const (
 	FAQBatchModeReplace = "replace"
 )
 
-// FAQBatchUpsertPayload 批量导入 FAQ 条目
+// FAQBatchUpsertPayload is used for batch importing FAQ entries
 type FAQBatchUpsertPayload struct {
 	Entries     []FAQEntryPayload `json:"entries"      binding:"required"`
 	Mode        string            `json:"mode"         binding:"oneof=append replace"`
 	KnowledgeID string            `json:"knowledge_id"`
 }
 
-// FAQSearchRequest FAQ检索请求参数
+// FAQSearchRequest defines FAQ search request parameters
 type FAQSearchRequest struct {
 	QueryText       string  `json:"query_text"       binding:"required"`
 	VectorThreshold float64 `json:"vector_threshold"`
 	MatchCount      int     `json:"match_count"`
 }
 
-// FAQEntryFieldsUpdate 单个FAQ条目的字段更新
+// FAQEntryFieldsUpdate defines field updates for a single FAQ entry
 type FAQEntryFieldsUpdate struct {
 	IsEnabled     *bool   `json:"is_enabled,omitempty"`
 	IsRecommended *bool   `json:"is_recommended,omitempty"`
 	TagID         *string `json:"tag_id,omitempty"`
-	// 后续可扩展更多字段
+	// Can be extended with more fields in the future
 }
 
-// FAQEntryFieldsBatchUpdate 批量更新FAQ条目字段的请求
-// 支持两种模式：
-// 1. 按条目ID更新：使用 ByID 字段
-// 2. 按Tag更新：使用 ByTag 字段，将该Tag下所有条目应用相同的更新
+// FAQEntryFieldsBatchUpdate is the request for batch updating FAQ entry fields
+// Supports two modes:
+// 1. Update by entry ID: use the ByID field
+// 2. Update by Tag: use the ByTag field, applying the same update to all entries under that Tag
 type FAQEntryFieldsBatchUpdate struct {
-	// ByID 按条目ID更新，key为条目ID
+	// ByID updates by entry ID, key is the entry ID
 	ByID map[string]FAQEntryFieldsUpdate `json:"by_id,omitempty"`
-	// ByTag 按Tag批量更新，key为TagID（空字符串表示未分类）
+	// ByTag updates by Tag in batch, key is TagID (empty string means uncategorized)
 	ByTag map[string]FAQEntryFieldsUpdate `json:"by_tag,omitempty"`
 }
 
-// FAQImportTaskStatus 导入任务状态
+// FAQImportTaskStatus represents the import task status
 type FAQImportTaskStatus string
 
 const (
@@ -275,7 +275,7 @@ type FAQImportProgress struct {
 	UpdatedAt   int64               `json:"updated_at"`    // Last update timestamp
 }
 
-// FAQImportMetadata 存储在Knowledge.Metadata中的FAQ导入任务信息
+// FAQImportMetadata stores FAQ import task information in Knowledge.Metadata
 // Deprecated: Use FAQImportProgress with Redis storage instead
 type FAQImportMetadata struct {
 	ImportProgress  int `json:"import_progress"` // 0-100

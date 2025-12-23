@@ -15,7 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 无需认证的API列表
+// noAuthAPI is the list of APIs that don't require authentication
 var noAuthAPI = map[string][]string{
 	"/health":               {"GET"},
 	"/api/v1/auth/register": {"POST"},
@@ -23,10 +23,10 @@ var noAuthAPI = map[string][]string{
 	"/api/v1/auth/refresh":  {"POST"},
 }
 
-// 检查请求是否在无需认证的API列表中
+// isNoAuthAPI checks if the request is in the no-auth API list
 func isNoAuthAPI(path string, method string) bool {
 	for api, methods := range noAuthAPI {
-		// 如果以*结尾，按照前缀匹配，否则按照全路径匹配
+		// If ends with *, match by prefix; otherwise match full path
 		if strings.HasSuffix(api, "*") {
 			if strings.HasPrefix(path, strings.TrimSuffix(api, "*")) && slices.Contains(methods, method) {
 				return true
@@ -40,23 +40,23 @@ func isNoAuthAPI(path string, method string) bool {
 
 // canAccessTenant checks if a user can access a target tenant
 func canAccessTenant(user *types.User, targetTenantID uint64, cfg *config.Config) bool {
-	// 1. 检查功能是否启用
+	// 1. Check if feature is enabled
 	if cfg == nil || cfg.Tenant == nil || !cfg.Tenant.EnableCrossTenantAccess {
 		return false
 	}
-	// 2. 检查用户权限
+	// 2. Check user permissions
 	if !user.CanAccessAllTenants {
 		return false
 	}
-	// 3. 如果目标租户是用户自己的租户，允许访问
+	// 3. If target tenant is user's own tenant, allow access
 	if user.TenantID == targetTenantID {
 		return true
 	}
-	// 4. 用户有跨租户权限，允许访问（具体验证在中间件中完成）
+	// 4. User has cross-tenant access permission
 	return true
 }
 
-// Auth 认证中间件
+// Auth authentication middleware
 func Auth(
 	tenantService interfaces.TenantService,
 	userService interfaces.UserService,
@@ -69,29 +69,29 @@ func Auth(
 			return
 		}
 
-		// 检查请求是否在无需认证的API列表中
+		// Check if request is in the no-auth API list
 		if isNoAuthAPI(c.Request.URL.Path, c.Request.Method) {
 			c.Next()
 			return
 		}
 
-		// 尝试JWT Token认证
+		// Try JWT Token authentication
 		authHeader := c.GetHeader("Authorization")
 		if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
 			token := strings.TrimPrefix(authHeader, "Bearer ")
 			user, err := userService.ValidateToken(c.Request.Context(), token)
 			if err == nil && user != nil {
-				// JWT Token认证成功
-				// 检查是否有跨租户访问请求
+				// JWT Token authentication successful
+				// Check for cross-tenant access request
 				targetTenantID := user.TenantID
 				tenantHeader := c.GetHeader("X-Tenant-ID")
 				if tenantHeader != "" {
-					// 解析目标租户ID
+					// Parse target tenant ID
 					parsedTenantID, err := strconv.ParseUint(tenantHeader, 10, 64)
 					if err == nil {
-						// 检查用户是否有跨租户访问权限
+						// Check if user has cross-tenant access permission
 						if canAccessTenant(user, parsedTenantID, cfg) {
-							// 验证目标租户是否存在
+							// Verify target tenant exists
 							targetTenant, err := tenantService.GetTenantByID(c.Request.Context(), parsedTenantID)
 							if err == nil && targetTenant != nil {
 								targetTenantID = parsedTenantID
@@ -105,7 +105,7 @@ func Auth(
 								return
 							}
 						} else {
-							// 用户没有权限访问目标租户
+							// User doesn't have permission to access target tenant
 							log.Printf("User %s attempted to access tenant %d without permission", user.ID, parsedTenantID)
 							c.JSON(http.StatusForbidden, gin.H{
 								"error": "Forbidden: insufficient permissions to access target tenant",
@@ -116,7 +116,7 @@ func Auth(
 					}
 				}
 
-				// 获取租户信息（使用目标租户ID）
+				// Get tenant info (using target tenant ID)
 				tenant, err := tenantService.GetTenantByID(c.Request.Context(), targetTenantID)
 				if err != nil {
 					log.Printf("Error getting tenant by ID: %v, tenantID: %d, userID: %s", err, targetTenantID, user.ID)
@@ -127,7 +127,7 @@ func Auth(
 					return
 				}
 
-				// 存储用户和租户信息到上下文
+				// Store user and tenant info in context
 				c.Set(types.TenantIDContextKey.String(), targetTenantID)
 				c.Set(types.TenantInfoContextKey.String(), tenant)
 				c.Set("user", user)
@@ -145,7 +145,7 @@ func Auth(
 			}
 		}
 
-		// 尝试X-API-Key认证（兼容模式）
+		// Try X-API-Key authentication (compatibility mode)
 		apiKey := c.GetHeader("X-API-Key")
 		if apiKey != "" {
 			// Get tenant information
@@ -190,7 +190,7 @@ func Auth(
 			return
 		}
 
-		// 没有提供任何认证信息
+		// No authentication info provided
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: missing authentication"})
 		c.Abort()
 	}

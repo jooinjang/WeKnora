@@ -48,13 +48,11 @@ class TextSplitter(BaseModel, Generic[T]):
 
     # Try to keep the matched characters as a whole.
     # If it's too long, the content will be further segmented.
-    # 尝试将匹配的字符作为整体保留，如果太长则进一步分段
     protected_regex: List[str] = Field(
         description="Protected regex for splitting into words"
     )
     len_function: Callable[[str], int] = Field(description="The length function.")
     # Header tracking Hook related attributes
-    # 标题跟踪钩子相关属性
     header_hook: HeaderTracker = Field(default_factory=HeaderTracker, exclude=True)
 
     # Compiled regex patterns for protected content

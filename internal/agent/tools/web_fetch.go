@@ -67,24 +67,24 @@ func NewWebFetchTool(chatModel chat.Chat) *WebFetchTool {
 	}
 }
 
-// Parameters 返回工具参数的 JSON Schema
+// Parameters returns the JSON Schema for the tool parameters
 func (t *WebFetchTool) Parameters() map[string]interface{} {
 	return map[string]interface{}{
 		"type": "object",
 		"properties": map[string]interface{}{
 			"items": map[string]interface{}{
 				"type":        "array",
-				"description": "批量抓取任务，每项包含 url 与 prompt",
+				"description": "Batch fetch tasks, each item contains url and prompt",
 				"items": map[string]interface{}{
 					"type": "object",
 					"properties": map[string]interface{}{
 						"url": map[string]interface{}{
 							"type":        "string",
-							"description": "待抓取的网页 URL，需来自 web_search 结果",
+							"description": "URL of the webpage to fetch, should come from web_search results",
 						},
 						"prompt": map[string]interface{}{
 							"type":        "string",
-							"description": "分析该网页内容时使用的提示词",
+							"description": "Prompt to use when analyzing the webpage content",
 						},
 					},
 					"required": []string{"url", "prompt"},
@@ -96,13 +96,13 @@ func (t *WebFetchTool) Parameters() map[string]interface{} {
 	}
 }
 
-// Execute 执行 web_fetch 工具
+// Execute executes the web_fetch tool
 func (t *WebFetchTool) Execute(ctx context.Context, args map[string]interface{}) (*types.ToolResult, error) {
 	logger.Infof(ctx, "[Tool][WebFetch] Execute started")
 
 	rawItems, ok := args["items"]
 	if !ok {
-		logger.Errorf(ctx, "[Tool][WebFetch] 参数缺失: items")
+		logger.Errorf(ctx, "[Tool][WebFetch] Missing parameter: items")
 		return &types.ToolResult{
 			Success: false,
 			Error:   "missing required parameter: items",
@@ -111,7 +111,7 @@ func (t *WebFetchTool) Execute(ctx context.Context, args map[string]interface{})
 
 	itemsSlice, ok := rawItems.([]interface{})
 	if !ok || len(itemsSlice) == 0 {
-		logger.Errorf(ctx, "[Tool][WebFetch] items 解析失败或为空: %#v", rawItems)
+		logger.Errorf(ctx, "[Tool][WebFetch] Failed to parse items or empty: %#v", rawItems)
 		return &types.ToolResult{
 			Success: false,
 			Error:   "'items' must be a non-empty array",
@@ -140,7 +140,7 @@ func (t *WebFetchTool) Execute(ctx context.Context, args map[string]interface{})
 						"prompt": p.Prompt,
 						"error":  err.Error(),
 					},
-					output: fmt.Sprintf("URL: %s\n错误: %v\n\n", p.URL, err),
+					output: fmt.Sprintf("URL: %s\nError: %v\n\n", p.URL, err),
 				}
 				return
 			}
@@ -169,7 +169,7 @@ func (t *WebFetchTool) Execute(ctx context.Context, args map[string]interface{})
 			if firstErr == nil {
 				firstErr = fmt.Errorf("fetch item %d returned nil", idx)
 			}
-			builder.WriteString(fmt.Sprintf("#%d: 无结果（内部错误）\n\n", idx+1))
+			builder.WriteString(fmt.Sprintf("#%d: No result (internal error)\n\n", idx+1))
 			continue
 		}
 
@@ -267,8 +267,8 @@ func (t *WebFetchTool) executeFetch(
 
 	htmlContent, method, err := t.fetchHTMLContent(ctx, finalURL)
 	if err != nil {
-		logger.Errorf(ctx, "[Tool][WebFetch] 获取页面失败 url=%s err=%v", finalURL, err)
-		return fmt.Sprintf("URL: %s\n错误: %v\n", params.URL, err),
+		logger.Errorf(ctx, "[Tool][WebFetch] Failed to fetch page url=%s err=%v", finalURL, err)
+		return fmt.Sprintf("URL: %s\nError: %v\n", params.URL, err),
 			map[string]interface{}{
 				"url":    params.URL,
 				"prompt": params.Prompt,
@@ -289,7 +289,7 @@ func (t *WebFetchTool) executeFetch(
 	var summaryErr error
 	summary, summaryErr = t.processWithLLM(ctx, params, textContent)
 	if summaryErr != nil {
-		logger.Warnf(ctx, "[Tool][WebFetch] LLM 处理失败 url=%s err=%v", params.URL, summaryErr)
+		logger.Warnf(ctx, "[Tool][WebFetch] LLM processing failed url=%s err=%v", params.URL, summaryErr)
 	} else if summary != "" {
 		resultData["summary"] = summary
 	}
@@ -314,11 +314,11 @@ func (t *WebFetchTool) processWithLLM(ctx context.Context, params webFetchParams
 		return "", fmt.Errorf("chat model not available for web_fetch")
 	}
 
-	systemMessage := "你是一名擅长阅读网页内容的智能助手，请根据提供的网页文本回答用户需求，严禁编造未在文本中出现的信息。"
-	userTemplate := `用户请求:
+	systemMessage := "You are an intelligent assistant skilled at reading web content. Please answer user requests based on the provided web text. Strictly forbidden to fabricate information not present in the text."
+	userTemplate := `User Request:
 %s
 
-网页内容:
+Web Content:
 %s`
 
 	messages := []chat.Message{
@@ -370,7 +370,7 @@ func (t *WebFetchTool) fetchHTMLContent(ctx context.Context, targetURL string) (
 	}
 
 	if err != nil {
-		logger.Debugf(ctx, "[Tool][WebFetch] Chromedp 抓取失败 url=%s err=%v，尝试直接请求", targetURL, err)
+		logger.Debugf(ctx, "[Tool][WebFetch] Chromedp fetch failed url=%s err=%v, trying direct request", targetURL, err)
 	}
 
 	html, httpErr := t.fetchWithHTTP(ctx, targetURL)
@@ -386,7 +386,7 @@ func (t *WebFetchTool) fetchHTMLContent(ctx context.Context, targetURL string) (
 
 // fetchWithChromedp fetches the HTML content with Chromedp
 func (t *WebFetchTool) fetchWithChromedp(ctx context.Context, targetURL string) (string, error) {
-	logger.Debugf(ctx, "[Tool][WebFetch] Chromedp 抓取开始 url=%s", targetURL)
+	logger.Debugf(ctx, "[Tool][WebFetch] Chromedp fetch starting url=%s", targetURL)
 
 	opts := append(
 		chromedp.DefaultExecAllocatorOptions[:],
@@ -420,7 +420,7 @@ func (t *WebFetchTool) fetchWithChromedp(ctx context.Context, targetURL string) 
 		return "", fmt.Errorf("chromedp run failed: %w", err)
 	}
 
-	logger.Debugf(ctx, "[Tool][WebFetch] Chromedp 抓取成功 url=%s", targetURL)
+	logger.Debugf(ctx, "[Tool][WebFetch] Chromedp fetch successful url=%s", targetURL)
 	return html, nil
 }
 

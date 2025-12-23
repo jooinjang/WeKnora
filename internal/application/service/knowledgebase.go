@@ -388,7 +388,7 @@ func (s *knowledgeBaseService) SetEmbeddingModel(ctx context.Context, id string,
 }
 
 // CopyKnowledgeBase copies a knowledge base to a new knowledge base
-// 浅拷贝
+// Shallow copy
 func (s *knowledgeBaseService) CopyKnowledgeBase(ctx context.Context,
 	srcKB string, dstKB string,
 ) (*types.KnowledgeBase, *types.KnowledgeBase, error) {

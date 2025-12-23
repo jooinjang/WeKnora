@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config 应用程序总配置
+// Config is the main application configuration
 type Config struct {
 	Conversation   *ConversationConfig   `yaml:"conversation"    json:"conversation"`
 	Server         *ServerConfig         `yaml:"server"          json:"server"`
@@ -34,7 +34,7 @@ type VectorDatabaseConfig struct {
 	Driver string `yaml:"driver" json:"driver"`
 }
 
-// ConversationConfig 对话服务配置
+// ConversationConfig is the conversation service configuration
 type ConversationConfig struct {
 	MaxRounds                  int            `yaml:"max_rounds"                    json:"max_rounds"`
 	KeywordThreshold           float64        `yaml:"keyword_threshold"             json:"keyword_threshold"`
@@ -61,7 +61,7 @@ type ConversationConfig struct {
 	GenerateQuestionsPrompt string `yaml:"generate_questions_prompt" json:"generate_questions_prompt"`
 }
 
-// SummaryConfig 摘要配置
+// SummaryConfig is the summary configuration
 type SummaryConfig struct {
 	MaxTokens           int     `yaml:"max_tokens"            json:"max_tokens"`
 	RepeatPenalty       float64 `yaml:"repeat_penalty"        json:"repeat_penalty"`
@@ -77,7 +77,7 @@ type SummaryConfig struct {
 	NoMatchPrefix       string  `yaml:"no_match_prefix"       json:"no_match_prefix"`
 }
 
-// ServerConfig 服务器配置
+// ServerConfig is the server configuration
 type ServerConfig struct {
 	Port            int           `yaml:"port"             json:"port"`
 	Host            string        `yaml:"host"             json:"host"`
@@ -85,7 +85,7 @@ type ServerConfig struct {
 	ShutdownTimeout time.Duration `yaml:"shutdown_timeout" json:"shutdown_timeout" default:"30s"`
 }
 
-// KnowledgeBaseConfig 知识库配置
+// KnowledgeBaseConfig is the knowledge base configuration
 type KnowledgeBaseConfig struct {
 	ChunkSize       int                    `yaml:"chunk_size"       json:"chunk_size"`
 	ChunkOverlap    int                    `yaml:"chunk_overlap"    json:"chunk_overlap"`
@@ -94,12 +94,12 @@ type KnowledgeBaseConfig struct {
 	ImageProcessing *ImageProcessingConfig `yaml:"image_processing" json:"image_processing"`
 }
 
-// ImageProcessingConfig 图像处理配置
+// ImageProcessingConfig is the image processing configuration
 type ImageProcessingConfig struct {
 	EnableMultimodal bool `yaml:"enable_multimodal" json:"enable_multimodal"`
 }
 
-// TenantConfig 租户配置
+// TenantConfig is the tenant configuration
 type TenantConfig struct {
 	DefaultSessionName        string `yaml:"default_session_name"        json:"default_session_name"`
 	DefaultSessionTitle       string `yaml:"default_session_title"       json:"default_session_title"`
@@ -108,7 +108,7 @@ type TenantConfig struct {
 	EnableCrossTenantAccess bool `yaml:"enable_cross_tenant_access" json:"enable_cross_tenant_access"`
 }
 
-// ModelConfig 模型配置
+// ModelConfig is the model configuration
 type ModelConfig struct {
 	Type       string                 `yaml:"type"       json:"type"`
 	Source     string                 `yaml:"source"     json:"source"`
@@ -116,23 +116,23 @@ type ModelConfig struct {
 	Parameters map[string]interface{} `yaml:"parameters" json:"parameters"`
 }
 
-// StreamManagerConfig 流管理器配置
+// StreamManagerConfig is the stream manager configuration
 type StreamManagerConfig struct {
-	Type           string        `yaml:"type"            json:"type"`            // 类型: "memory" 或 "redis"
-	Redis          RedisConfig   `yaml:"redis"           json:"redis"`           // Redis配置
-	CleanupTimeout time.Duration `yaml:"cleanup_timeout" json:"cleanup_timeout"` // 清理超时，单位秒
+	Type           string        `yaml:"type"            json:"type"`
+	Redis          RedisConfig   `yaml:"redis"           json:"redis"`
+	CleanupTimeout time.Duration `yaml:"cleanup_timeout" json:"cleanup_timeout"`
 }
 
-// RedisConfig Redis配置
+// RedisConfig is the Redis configuration
 type RedisConfig struct {
-	Address  string        `yaml:"address"  json:"address"`  // Redis地址
-	Password string        `yaml:"password" json:"password"` // Redis密码
-	DB       int           `yaml:"db"       json:"db"`       // Redis数据库
-	Prefix   string        `yaml:"prefix"   json:"prefix"`   // 键前缀
-	TTL      time.Duration `yaml:"ttl"      json:"ttl"`      // 过期时间(小时)
+	Address  string        `yaml:"address"  json:"address"`
+	Password string        `yaml:"password" json:"password"`
+	DB       int           `yaml:"db"       json:"db"`
+	Prefix   string        `yaml:"prefix"   json:"prefix"`
+	TTL      time.Duration `yaml:"ttl"      json:"ttl"`
 }
 
-// ExtractManagerConfig 抽取管理器配置
+// ExtractManagerConfig is the extraction manager configuration
 type ExtractManagerConfig struct {
 	ExtractGraph  *types.PromptTemplateStructured `yaml:"extract_graph"  json:"extract_graph"`
 	ExtractEntity *types.PromptTemplateStructured `yaml:"extract_entity" json:"extract_entity"`
@@ -144,47 +144,39 @@ type FebriText struct {
 	WithNoTag string `yaml:"with_no_tag" json:"with_no_tag"`
 }
 
-// LoadConfig 从配置文件加载配置
+// LoadConfig loads configuration from file
 func LoadConfig() (*Config, error) {
-	// 设置配置文件名和路径
-	viper.SetConfigName("config")         // 配置文件名称(不带扩展名)
-	viper.SetConfigType("yaml")           // 配置文件类型
-	viper.AddConfigPath(".")              // 当前目录
-	viper.AddConfigPath("./config")       // config子目录
-	viper.AddConfigPath("$HOME/.appname") // 用户目录
-	viper.AddConfigPath("/etc/appname/")  // etc目录
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("./config")
+	viper.AddConfigPath("$HOME/.appname")
+	viper.AddConfigPath("/etc/appname/")
 
-	// 启用环境变量替换
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// 读取配置文件
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("error reading config file: %w", err)
 	}
 
-	// 替换配置中的环境变量引用
 	configFileContent, err := os.ReadFile(viper.ConfigFileUsed())
 	if err != nil {
 		return nil, fmt.Errorf("error reading config file content: %w", err)
 	}
 
-	// 替换${ENV_VAR}格式的环境变量引用
+	// Replace ${ENV_VAR} format environment variable references
 	re := regexp.MustCompile(`\${([^}]+)}`)
 	result := re.ReplaceAllStringFunc(string(configFileContent), func(match string) string {
-		// 提取环境变量名称（去掉${}部分）
 		envVar := match[2 : len(match)-1]
-		// 获取环境变量值，如果不存在则保持原样
 		if value := os.Getenv(envVar); value != "" {
 			return value
 		}
 		return match
 	})
 
-	// 使用处理后的配置内容
 	viper.ReadConfig(strings.NewReader(result))
 
-	// 解析配置到结构体
 	var cfg Config
 	if err := viper.Unmarshal(&cfg, func(dc *mapstructure.DecoderConfig) {
 		dc.TagName = "yaml"
@@ -199,7 +191,7 @@ func LoadConfig() (*Config, error) {
 type WebSearchConfig struct {
 	Providers []WebSearchProviderConfig `yaml:"providers" json:"providers"`
 	Default   WebSearchDefaultConfig    `yaml:"default"   json:"default"`
-	Timeout   int                       `yaml:"timeout"   json:"timeout"` // 超时时间（秒）
+	Timeout   int                       `yaml:"timeout"   json:"timeout"`
 }
 
 // WebSearchProviderConfig represents configuration for a web search provider

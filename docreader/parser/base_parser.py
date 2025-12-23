@@ -408,22 +408,22 @@ class BaseParser(ABC):
     def _split_into_units(self, text: str) -> List[str]:
         """
         Args:
-            text: 文本内容
+            text: Text content
 
         Returns:
-            基本单元的列表
+            List of basic units
         """
         logger.info(f"Splitting text into basic units, text length: {len(text)}")
 
-        # 定义所有需要作为整体保护的结构模式 ---
+        # Define all structure patterns that need to be protected as a whole ---
         table_pattern = r"(?m)(^\|.*\|[ \t]*\r?\n(?:[ \t]*\r?\n)?^\|\s*:?--+.*\r?\n(?:^\|.*\|\r?\n?)*)"
 
-        # 其他需要保护的结构（代码块、公式块、行内元素）
+        # Other structures that need protection (code blocks, formula blocks, inline elements)
         code_block_pattern = r"```[\s\S]*?```"
         math_block_pattern = r"\$\$[\s\S]*?\$\$"
         inline_pattern = r"!\[.*?\]\(.*?\)|\[.*?\]\(.*?\)"
 
-        # 查找所有受保护结构的位置 ---
+        # Find all protected structure positions ---
         protected_ranges = []
         for pattern in [
             table_pattern,
@@ -432,29 +432,29 @@ class BaseParser(ABC):
             inline_pattern,
         ]:
             for match in re.finditer(pattern, text):
-                # 确保匹配到的不是空字符串，避免无效范围
+                # Ensure matched text is not empty to avoid invalid ranges
                 if match.group(0).strip():
                     protected_ranges.append((match.start(), match.end()))
 
-        # 按起始位置排序
+        # Sort by start position
         protected_ranges.sort(key=lambda x: x[0])
         logger.info(
             f"Found {len(protected_ranges)} protected structures "
             "(tables, code, formulas, images, links)."
         )
 
-        # 合并可能重叠的保护范围 ---
-        # 确保我们有一组不相交的、需要保护的文本块
+        # Merge potentially overlapping protected ranges ---
+        # Ensure we have a set of non-intersecting, protected text blocks
         if protected_ranges:
             merged_ranges = []
             current_start, current_end = protected_ranges[0]
 
             for next_start, next_end in protected_ranges[1:]:
                 if next_start < current_end:
-                    # 如果下一个范围与当前范围重叠，则合并它们
+                    # If next range overlaps with current range, merge them
                     current_end = max(current_end, next_end)
                 else:
-                    # 如果不重叠，则完成当前范围并开始一个新的范围
+                    # If not overlapping, complete current range and start a new one
                     merged_ranges.append((current_start, current_end))
                     current_start, current_end = next_start, next_end
 
@@ -464,32 +464,32 @@ class BaseParser(ABC):
                 f"After overlaps, {len(protected_ranges)} protected ranges remain."
             )
 
-        # 根据保护范围和分隔符来分割文本 ---
+        # Split text based on protected ranges and separators ---
         units = []
         last_end = 0
 
-        # 定义分隔符的正则表达式，通过加括号来保留分隔符本身
+        # Define separator regex, use parentheses to preserve the separators themselves
         separator_pattern = f"({'|'.join(re.escape(s) for s in self.separators)})"
 
         for start, end in protected_ranges:
-            # a. 处理受保护范围之前的文本
+            # a. Process text before the protected range
             if start > last_end:
                 pre_text = text[last_end:start]
-                # 对这部分非保护文本进行分割，并保留分隔符
+                # Split this non-protected text and preserve separators
                 segments = re.split(separator_pattern, pre_text)
-                units.extend([s for s in segments if s])  # 添加所有非空部分
+                units.extend([s for s in segments if s])  # Add all non-empty parts
 
-            # b. 将整个受保护的块（例如，一个完整的表格）作为一个不可分割的单元添加
+            # b. Add the entire protected block (e.g., a complete table) as a single indivisible unit
             protected_text = text[start:end]
             units.append(protected_text)
 
             last_end = end
 
-        # c. 处理最后一个受保护范围之后的文本
+        # c. Process text after the last protected range
         if last_end < len(text):
             post_text = text[last_end:]
             segments = re.split(separator_pattern, post_text)
-            units.extend([s for s in segments if s])  # 添加所有非空部分
+            units.extend([s for s in segments if s])  # Add all non-empty parts
 
         logger.info(f"Text splitting complete, created {len(units)} final basic units.")
         return units
@@ -538,7 +538,7 @@ class BaseParser(ABC):
                 )
                 logger.info(f"Created chunk {len(chunks)}, size: {len(chunk_text)}")
 
-                # Keep overlap, ensuring structure integrity
+                # Keep overlap, ensure structure integrity
                 if self.chunk_overlap > 0:
                     # Calculate target overlap size
                     overlap_target = min(self.chunk_overlap, len(chunk_text))

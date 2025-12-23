@@ -83,19 +83,19 @@ func (h *KnowledgeHandler) handleDuplicateKnowledgeError(c *gin.Context,
 }
 
 // CreateKnowledgeFromFile godoc
-// @Summary      从文件创建知识
-// @Description  上传文件并创建知识条目
-// @Tags         知识管理
+// @Summary      Create knowledge from file
+// @Description  Upload file and create knowledge entry
+// @Tags         Knowledge Management
 // @Accept       multipart/form-data
 // @Produce      json
-// @Param        id                path      string  true   "知识库ID"
-// @Param        file              formData  file    true   "上传的文件"
-// @Param        fileName          formData  string  false  "自定义文件名"
-// @Param        metadata          formData  string  false  "元数据JSON"
-// @Param        enable_multimodel formData  bool    false  "启用多模态处理"
-// @Success      200               {object}  map[string]interface{}  "创建的知识"
-// @Failure      400               {object}  errors.AppError         "请求参数错误"
-// @Failure      409               {object}  map[string]interface{}  "文件重复"
+// @Param        id                path      string  true   "Knowledge base ID"
+// @Param        file              formData  file    true   "Uploaded file"
+// @Param        fileName          formData  string  false  "Custom filename"
+// @Param        metadata          formData  string  false  "Metadata JSON"
+// @Param        enable_multimodel formData  bool    false  "Enable multimodal processing"
+// @Success      200               {object}  map[string]interface{}  "Created knowledge"
+// @Failure      400               {object}  errors.AppError         "Invalid request parameters"
+// @Failure      409               {object}  map[string]interface{}  "Duplicate file"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases/{id}/knowledge/file [post]
@@ -184,16 +184,16 @@ func (h *KnowledgeHandler) CreateKnowledgeFromFile(c *gin.Context) {
 }
 
 // CreateKnowledgeFromURL godoc
-// @Summary      从URL创建知识
-// @Description  从指定URL抓取内容并创建知识条目
-// @Tags         知识管理
+// @Summary      Create knowledge from URL
+// @Description  Fetch content from specified URL and create knowledge entry
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      json
-// @Param        id       path      string  true  "知识库ID"
-// @Param        request  body      object{url=string,enable_multimodel=bool,title=string}  true  "URL请求"
-// @Success      201      {object}  map[string]interface{}  "创建的知识"
-// @Failure      400      {object}  errors.AppError         "请求参数错误"
-// @Failure      409      {object}  map[string]interface{}  "URL重复"
+// @Param        id       path      string  true  "Knowledge base ID"
+// @Param        request  body      object{url=string,enable_multimodel=bool,title=string}  true  "URL request"
+// @Success      201      {object}  map[string]interface{}  "Created knowledge"
+// @Failure      400      {object}  errors.AppError         "Invalid request parameters"
+// @Failure      409      {object}  map[string]interface{}  "Duplicate URL"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases/{id}/knowledge/url [post]
@@ -253,15 +253,15 @@ func (h *KnowledgeHandler) CreateKnowledgeFromURL(c *gin.Context) {
 }
 
 // CreateManualKnowledge godoc
-// @Summary      手工创建知识
-// @Description  手工录入Markdown格式的知识内容
-// @Tags         知识管理
+// @Summary      Create knowledge manually
+// @Description  Manually enter knowledge content in Markdown format
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      json
-// @Param        id       path      string                       true  "知识库ID"
-// @Param        request  body      types.ManualKnowledgePayload true  "手工知识内容"
-// @Success      200      {object}  map[string]interface{}       "创建的知识"
-// @Failure      400      {object}  errors.AppError              "请求参数错误"
+// @Param        id       path      string                       true  "Knowledge base ID"
+// @Param        request  body      types.ManualKnowledgePayload true  "Manual knowledge content"
+// @Success      200      {object}  map[string]interface{}       "Created knowledge"
+// @Failure      400      {object}  errors.AppError              "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases/{id}/knowledge/manual [post]
@@ -304,15 +304,15 @@ func (h *KnowledgeHandler) CreateManualKnowledge(c *gin.Context) {
 }
 
 // GetKnowledge godoc
-// @Summary      获取知识详情
-// @Description  根据ID获取知识条目详情
-// @Tags         知识管理
+// @Summary      Get knowledge details
+// @Description  Get knowledge entry details by ID
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      json
-// @Param        id   path      string  true  "知识ID"
-// @Success      200  {object}  map[string]interface{}  "知识详情"
-// @Failure      400  {object}  errors.AppError         "请求参数错误"
-// @Failure      404  {object}  errors.AppError         "知识不存在"
+// @Param        id   path      string  true  "Knowledge ID"
+// @Success      200  {object}  map[string]interface{}  "Knowledge details"
+// @Failure      400  {object}  errors.AppError         "Invalid request parameters"
+// @Failure      404  {object}  errors.AppError         "Knowledge not found"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge/{id} [get]
@@ -350,19 +350,19 @@ func (h *KnowledgeHandler) GetKnowledge(c *gin.Context) {
 }
 
 // ListKnowledge godoc
-// @Summary      获取知识列表
-// @Description  获取知识库下的知识列表，支持分页和筛选
-// @Tags         知识管理
+// @Summary      Get knowledge list
+// @Description  Get knowledge list under knowledge base, supports pagination and filtering
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      json
-// @Param        id         path      string  true   "知识库ID"
-// @Param        page       query     int     false  "页码"
-// @Param        page_size  query     int     false  "每页数量"
-// @Param        tag_id     query     string  false  "标签ID筛选"
-// @Param        keyword    query     string  false  "关键词搜索"
-// @Param        file_type  query     string  false  "文件类型筛选"
-// @Success      200        {object}  map[string]interface{}  "知识列表"
-// @Failure      400        {object}  errors.AppError         "请求参数错误"
+// @Param        id         path      string  true   "Knowledge base ID"
+// @Param        page       query     int     false  "Page number"
+// @Param        page_size  query     int     false  "Items per page"
+// @Param        tag_id     query     string  false  "Filter by tag ID"
+// @Param        keyword    query     string  false  "Keyword search"
+// @Param        file_type  query     string  false  "Filter by file type"
+// @Success      200        {object}  map[string]interface{}  "Knowledge list"
+// @Failure      400        {object}  errors.AppError         "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases/{id}/knowledge [get]
@@ -426,14 +426,14 @@ func (h *KnowledgeHandler) ListKnowledge(c *gin.Context) {
 }
 
 // DeleteKnowledge godoc
-// @Summary      删除知识
-// @Description  根据ID删除知识条目
-// @Tags         知识管理
+// @Summary      Delete knowledge
+// @Description  Delete knowledge entry by ID
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      json
-// @Param        id   path      string  true  "知识ID"
-// @Success      200  {object}  map[string]interface{}  "删除成功"
-// @Failure      400  {object}  errors.AppError         "请求参数错误"
+// @Param        id   path      string  true  "Knowledge ID"
+// @Success      200  {object}  map[string]interface{}  "Delete successful"
+// @Failure      400  {object}  errors.AppError         "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge/{id} [delete]
@@ -466,14 +466,14 @@ func (h *KnowledgeHandler) DeleteKnowledge(c *gin.Context) {
 }
 
 // DownloadKnowledgeFile godoc
-// @Summary      下载知识文件
-// @Description  下载知识条目关联的原始文件
-// @Tags         知识管理
+// @Summary      Download knowledge file
+// @Description  Download the original file associated with the knowledge entry
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      application/octet-stream
-// @Param        id   path      string  true  "知识ID"
-// @Success      200  {file}    file    "文件内容"
-// @Failure      400  {object}  errors.AppError  "请求参数错误"
+// @Param        id   path      string  true  "Knowledge ID"
+// @Success      200  {file}    file    "File content"
+// @Failure      400  {object}  errors.AppError  "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge/{id}/download [get]
@@ -534,14 +534,14 @@ type GetKnowledgeBatchRequest struct {
 }
 
 // GetKnowledgeBatch godoc
-// @Summary      批量获取知识
-// @Description  根据ID列表批量获取知识条目
-// @Tags         知识管理
+// @Summary      Batch get knowledge
+// @Description  Batch retrieve knowledge entries by ID list
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      json
-// @Param        ids  query     []string  true  "知识ID列表"
-// @Success      200  {object}  map[string]interface{}  "知识列表"
-// @Failure      400  {object}  errors.AppError         "请求参数错误"
+// @Param        ids  query     []string  true  "Knowledge ID list"
+// @Success      200  {object}  map[string]interface{}  "Knowledge list"
+// @Failure      400  {object}  errors.AppError         "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge/batch [get]
@@ -592,15 +592,15 @@ func (h *KnowledgeHandler) GetKnowledgeBatch(c *gin.Context) {
 }
 
 // UpdateKnowledge godoc
-// @Summary      更新知识
-// @Description  更新知识条目信息
-// @Tags         知识管理
+// @Summary      Update knowledge
+// @Description  Update knowledge entry information
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      json
-// @Param        id       path      string          true  "知识ID"
-// @Param        request  body      types.Knowledge true  "知识信息"
-// @Success      200      {object}  map[string]interface{}  "更新成功"
-// @Failure      400      {object}  errors.AppError         "请求参数错误"
+// @Param        id       path      string          true  "Knowledge ID"
+// @Param        request  body      types.Knowledge true  "Knowledge information"
+// @Success      200      {object}  map[string]interface{}  "Update successful"
+// @Failure      400      {object}  errors.AppError         "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge/{id} [put]
@@ -635,15 +635,15 @@ func (h *KnowledgeHandler) UpdateKnowledge(c *gin.Context) {
 }
 
 // UpdateManualKnowledge godoc
-// @Summary      更新手工知识
-// @Description  更新手工录入的Markdown知识内容
-// @Tags         知识管理
+// @Summary      Update manual knowledge
+// @Description  Update manually entered Markdown knowledge content
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      json
-// @Param        id       path      string                       true  "知识ID"
-// @Param        request  body      types.ManualKnowledgePayload true  "手工知识内容"
-// @Success      200      {object}  map[string]interface{}       "更新后的知识"
-// @Failure      400      {object}  errors.AppError              "请求参数错误"
+// @Param        id       path      string                       true  "Knowledge ID"
+// @Param        request  body      types.ManualKnowledgePayload true  "Manual knowledge content"
+// @Success      200      {object}  map[string]interface{}       "Updated knowledge"
+// @Failure      400      {object}  errors.AppError              "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge/manual/{id} [put]
@@ -690,14 +690,14 @@ type knowledgeTagBatchRequest struct {
 }
 
 // UpdateKnowledgeTagBatch godoc
-// @Summary      批量更新知识标签
-// @Description  批量更新知识条目的标签
-// @Tags         知识管理
+// @Summary      Batch update knowledge tags
+// @Description  Batch update tags for knowledge entries
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      json
-// @Param        request  body      object  true  "标签更新请求"
-// @Success      200      {object}  map[string]interface{}  "更新成功"
-// @Failure      400      {object}  errors.AppError         "请求参数错误"
+// @Param        request  body      object  true  "Tag update request"
+// @Success      200      {object}  map[string]interface{}  "Update successful"
+// @Failure      400      {object}  errors.AppError         "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge/tags [put]
@@ -706,7 +706,7 @@ func (h *KnowledgeHandler) UpdateKnowledgeTagBatch(c *gin.Context) {
 	var req knowledgeTagBatchRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.Error(ctx, "Failed to parse knowledge tag batch request", err)
-		c.Error(errors.NewBadRequestError("请求参数不合法").WithDetails(err.Error()))
+		c.Error(errors.NewBadRequestError("Invalid request parameters").WithDetails(err.Error()))
 		return
 	}
 	if err := h.kgService.UpdateKnowledgeTagBatch(ctx, req.Updates); err != nil {
@@ -720,16 +720,16 @@ func (h *KnowledgeHandler) UpdateKnowledgeTagBatch(c *gin.Context) {
 }
 
 // UpdateImageInfo godoc
-// @Summary      更新图像信息
-// @Description  更新知识分块的图像信息
-// @Tags         知识管理
+// @Summary      Update image information
+// @Description  Update image information for knowledge chunk
+// @Tags         Knowledge Management
 // @Accept       json
 // @Produce      json
-// @Param        id        path      string  true  "知识ID"
-// @Param        chunk_id  path      string  true  "分块ID"
-// @Param        request   body      object{image_info=string}  true  "图像信息"
-// @Success      200       {object}  map[string]interface{}     "更新成功"
-// @Failure      400       {object}  errors.AppError            "请求参数错误"
+// @Param        id        path      string  true  "Knowledge ID"
+// @Param        chunk_id  path      string  true  "Chunk ID"
+// @Param        request   body      object{image_info=string}  true  "Image information"
+// @Success      200       {object}  map[string]interface{}     "Update successful"
+// @Failure      400       {object}  errors.AppError            "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge/image/{id}/{chunk_id} [put]

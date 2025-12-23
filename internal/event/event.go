@@ -13,65 +13,65 @@ type EventType string
 
 const (
 	// Query processing events
-	EventQueryReceived   EventType = "query.received"   // 用户查询到达
-	EventQueryValidated  EventType = "query.validated"  // 查询验证完成
-	EventQueryPreprocess EventType = "query.preprocess" // 查询预处理
-	EventQueryRewrite    EventType = "query.rewrite"    // 查询改写
-	EventQueryRewritten  EventType = "query.rewritten"  // 查询改写完成
+	EventQueryReceived   EventType = "query.received"
+	EventQueryValidated  EventType = "query.validated"
+	EventQueryPreprocess EventType = "query.preprocess"
+	EventQueryRewrite    EventType = "query.rewrite"
+	EventQueryRewritten  EventType = "query.rewritten"
 
 	// Retrieval events
-	EventRetrievalStart    EventType = "retrieval.start"    // 检索开始
-	EventRetrievalVector   EventType = "retrieval.vector"   // 向量检索
-	EventRetrievalKeyword  EventType = "retrieval.keyword"  // 关键词检索
-	EventRetrievalEntity   EventType = "retrieval.entity"   // 实体检索
-	EventRetrievalComplete EventType = "retrieval.complete" // 检索完成
+	EventRetrievalStart    EventType = "retrieval.start"
+	EventRetrievalVector   EventType = "retrieval.vector"
+	EventRetrievalKeyword  EventType = "retrieval.keyword"
+	EventRetrievalEntity   EventType = "retrieval.entity"
+	EventRetrievalComplete EventType = "retrieval.complete"
 
 	// Rerank events
-	EventRerankStart    EventType = "rerank.start"    // 排序开始
-	EventRerankComplete EventType = "rerank.complete" // 排序完成
+	EventRerankStart    EventType = "rerank.start"
+	EventRerankComplete EventType = "rerank.complete"
 
 	// Merge events
-	EventMergeStart    EventType = "merge.start"    // 合并开始
-	EventMergeComplete EventType = "merge.complete" // 合并完成
+	EventMergeStart    EventType = "merge.start"
+	EventMergeComplete EventType = "merge.complete"
 
 	// Chat completion events
-	EventChatStart    EventType = "chat.start"    // 聊天生成开始
-	EventChatComplete EventType = "chat.complete" // 聊天生成完成
-	EventChatStream   EventType = "chat.stream"   // 聊天流式输出
+	EventChatStart    EventType = "chat.start"
+	EventChatComplete EventType = "chat.complete"
+	EventChatStream   EventType = "chat.stream"
 
 	// Agent events
-	EventAgentQuery    EventType = "agent.query"    // Agent 查询开始
-	EventAgentPlan     EventType = "agent.plan"     // Agent 计划生成
-	EventAgentStep     EventType = "agent.step"     // Agent 步骤执行
-	EventAgentTool     EventType = "agent.tool"     // Agent 工具调用
-	EventAgentComplete EventType = "agent.complete" // Agent 完成
+	EventAgentQuery    EventType = "agent.query"
+	EventAgentPlan     EventType = "agent.plan"
+	EventAgentStep     EventType = "agent.step"
+	EventAgentTool     EventType = "agent.tool"
+	EventAgentComplete EventType = "agent.complete"
 
 	// Agent streaming events (for real-time feedback)
-	EventAgentThought     EventType = "thought"      // Agent 思考过程
-	EventAgentToolCall    EventType = "tool_call"    // 工具调用通知
-	EventAgentToolResult  EventType = "tool_result"  // 工具结果
-	EventAgentReflection  EventType = "reflection"   // Agent 反思
-	EventAgentReferences  EventType = "references"   // 知识引用
-	EventAgentFinalAnswer EventType = "final_answer" // 最终答案
+	EventAgentThought     EventType = "thought"
+	EventAgentToolCall    EventType = "tool_call"
+	EventAgentToolResult  EventType = "tool_result"
+	EventAgentReflection  EventType = "reflection"
+	EventAgentReferences  EventType = "references"
+	EventAgentFinalAnswer EventType = "final_answer"
 
 	// Error events
-	EventError EventType = "error" // 错误事件
+	EventError EventType = "error"
 
 	// Session events
-	EventSessionTitle EventType = "session_title" // 会话标题更新
+	EventSessionTitle EventType = "session_title"
 
 	// Control events
-	EventStop EventType = "stop" // 停止对话生成
+	EventStop EventType = "stop"
 )
 
 // Event represents an event in the system
 type Event struct {
-	ID        string                 // 事件ID (自动生成UUID，用于流式更新追踪)
-	Type      EventType              // 事件类型
-	SessionID string                 // 会话ID
-	Data      interface{}            // 事件数据
-	Metadata  map[string]interface{} // 事件元数据
-	RequestID string                 // 请求ID
+	ID        string
+	Type      EventType
+	SessionID string
+	Data      interface{}
+	Metadata  map[string]interface{}
+	RequestID string
 }
 
 // EventHandler is a function that handles events
@@ -81,7 +81,7 @@ type EventHandler func(ctx context.Context, event Event) error
 type EventBus struct {
 	mu        sync.RWMutex
 	handlers  map[EventType][]EventHandler
-	asyncMode bool // 是否异步处理事件
+	asyncMode bool
 }
 
 // NewEventBus creates a new EventBus instance

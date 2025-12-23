@@ -52,7 +52,6 @@ var (
 )
 
 // knowledgeService implements the knowledge service interface
-// service 实现知识服务接口
 type knowledgeService struct {
 	config          *config.Config
 	retrieveEngine  interfaces.RetrieveEngineRegistry
@@ -74,7 +73,7 @@ type knowledgeService struct {
 const (
 	manualContentMaxLength = 200000
 	manualFileExtension    = ".md"
-	faqImportBatchSize     = 50 // 每批处理的FAQ条目数
+	faqImportBatchSize     = 50 // Number of FAQ entries to process per batch
 )
 
 // NewKnowledgeService creates a new knowledge service instance
@@ -162,31 +161,31 @@ func (s *knowledgeService) CreateKnowledgeFromFile(ctx context.Context,
 		return nil, err
 	}
 
-	// 检查多模态配置完整性 - 只在图片文件时校验
-	// 检查是否为图片文件
+	// Check multimodal configuration completeness - only validate for image files
+	// Check if it's an image file
 	if !IsImageType(getFileType(fileName)) {
 		logger.Info(ctx, "Non-image file with multimodal enabled, skipping COS/VLM validation")
 	} else {
-		// 检查COS配置
+		// Check COS configuration
 		switch kb.StorageConfig.Provider {
 		case "cos":
 			if kb.StorageConfig.SecretID == "" || kb.StorageConfig.SecretKey == "" ||
 				kb.StorageConfig.Region == "" || kb.StorageConfig.BucketName == "" ||
 				kb.StorageConfig.AppID == "" {
 				logger.Error(ctx, "COS configuration incomplete for image multimodal processing")
-				return nil, werrors.NewBadRequestError("上传图片文件需要完整的对象存储配置信息, 请前往系统设置页面进行补全")
+				return nil, werrors.NewBadRequestError("Uploading image files requires complete object storage configuration information, please go to system settings page to complete it")
 			}
 		case "minio":
 			if kb.StorageConfig.BucketName == "" {
 				logger.Error(ctx, "MinIO configuration incomplete for image multimodal processing")
-				return nil, werrors.NewBadRequestError("上传图片文件需要完整的对象存储配置信息, 请前往系统设置页面进行补全")
+				return nil, werrors.NewBadRequestError("Uploading image files requires complete object storage configuration information, please go to system settings page to complete it")
 			}
 		}
 
-		// 检查VLM配置
+		// Check VLM configuration
 		if !kb.VLMConfig.Enabled || kb.VLMConfig.ModelID == "" {
 			logger.Error(ctx, "VLM model is not configured")
-			return nil, werrors.NewBadRequestError("上传图片文件需要设置VLM模型")
+			return nil, werrors.NewBadRequestError("Uploading image files requires VLM model to be configured")
 		}
 
 		logger.Info(ctx, "Image multimodal configuration validation passed")
@@ -248,11 +247,11 @@ func (s *knowledgeService) CreateKnowledgeFromFile(ctx context.Context,
 		metadataJSON = types.JSON(metadataBytes)
 	}
 
-	// 验证文件名安全性
+	// Validate filename safety
 	safeFilename, isValid := secutils.ValidateInput(fileName)
 	if !isValid {
 		logger.Errorf(ctx, "Invalid filename: %s", fileName)
-		return nil, werrors.NewValidationError("文件名包含非法字符")
+		return nil, werrors.NewValidationError("Filename contains illegal characters")
 	}
 
 	// Create knowledge record
@@ -498,20 +497,20 @@ func (s *knowledgeService) CreateKnowledgeFromManual(ctx context.Context,
 	logger.Info(ctx, "Start creating manual knowledge entry")
 
 	if payload == nil {
-		return nil, werrors.NewBadRequestError("请求内容不能为空")
+		return nil, werrors.NewBadRequestError("Request content cannot be empty")
 	}
 
 	cleanContent := secutils.CleanMarkdown(payload.Content)
 	if strings.TrimSpace(cleanContent) == "" {
-		return nil, werrors.NewValidationError("内容不能为空")
+		return nil, werrors.NewValidationError("Content cannot be empty")
 	}
 	if len([]rune(cleanContent)) > manualContentMaxLength {
-		return nil, werrors.NewValidationError(fmt.Sprintf("内容长度超出限制（最多%d个字符）", manualContentMaxLength))
+		return nil, werrors.NewValidationError(fmt.Sprintf("Content length exceeds limit (maximum %d characters)", manualContentMaxLength))
 	}
 
 	safeTitle, ok := secutils.ValidateInput(payload.Title)
 	if !ok {
-		return nil, werrors.NewValidationError("标题包含非法字符或超出长度限制")
+		return nil, werrors.NewValidationError("Title contains illegal characters or exceeds length limit")
 	}
 
 	status := strings.ToLower(strings.TrimSpace(payload.Status))
@@ -519,7 +518,7 @@ func (s *knowledgeService) CreateKnowledgeFromManual(ctx context.Context,
 		status = types.ManualKnowledgeStatusDraft
 	}
 	if status != types.ManualKnowledgeStatusDraft && status != types.ManualKnowledgeStatusPublish {
-		return nil, werrors.NewValidationError("状态仅支持 draft 或 publish")
+		return nil, werrors.NewValidationError("Status only supports 'draft' or 'publish'")
 	}
 
 	kb, err := s.kbService.GetKnowledgeBaseByID(ctx, kbID)
@@ -594,7 +593,7 @@ func (s *knowledgeService) createKnowledgeFromPassageInternal(ctx context.Contex
 		safePassage, isValid := secutils.ValidateInput(p)
 		if !isValid {
 			logger.Errorf(ctx, "Invalid passage content at index %d", i)
-			return nil, werrors.NewValidationError(fmt.Sprintf("段落 %d 包含非法内容", i+1))
+			return nil, werrors.NewValidationError(fmt.Sprintf("Paragraph %d contains illegal content", i+1))
 		}
 		safePassages = append(safePassages, safePassage)
 	}
@@ -657,7 +656,7 @@ func (s *knowledgeService) createKnowledgeFromPassageInternal(ctx context.Contex
 			KnowledgeID:              knowledge.ID,
 			KnowledgeBaseID:          kbID,
 			Passages:                 safePassages,
-			EnableMultimodel:         false, // 文本段落不支持多模态
+			EnableMultimodel:         false, // Text paragraphs don't support multimodal
 			EnableQuestionGeneration: enableQuestionGeneration,
 			QuestionCount:            questionCount,
 		}
@@ -1093,19 +1092,19 @@ func (s *knowledgeService) processChunks(ctx context.Context,
 			totalImages += len(chunkData.Images)
 		}
 	}
-	logger.Infof(ctx, "[DocReader] 包含图片的Chunk数: %d, 总图片数: %d", chunksWithImages, totalImages)
+	logger.Infof(ctx, "[DocReader] Chunks with images: %d, Total images: %d", chunksWithImages, totalImages)
 
-	// 打印每个Chunk的详细信息
+	// Print detailed information for each Chunk
 	for idx, chunkData := range chunks {
 		contentPreview := chunkData.Content
 		if len(contentPreview) > 200 {
 			contentPreview = contentPreview[:200] + "..."
 		}
-		logger.Infof(ctx, "[DocReader] Chunk #%d (seq=%d): 内容长度=%d, 图片数=%d, 范围=[%d-%d]",
+		logger.Infof(ctx, "[DocReader] Chunk #%d (seq=%d): Content Length=%d, Image Count=%d, Range=[%d-%d]",
 			idx, chunkData.Seq, len(chunkData.Content), len(chunkData.Images), chunkData.Start, chunkData.End)
-		logger.Debugf(ctx, "[DocReader] Chunk #%d 内容预览: %s", idx, contentPreview)
+		logger.Debugf(ctx, "[DocReader] Chunk #%d Content Preview: %s", idx, contentPreview)
 
-		// 打印图片详细信息
+		// Print detailed image information
 		for imgIdx, img := range chunkData.Images {
 			logger.Infof(ctx, "[DocReader]   图片 #%d: URL=%s", imgIdx, img.Url)
 			logger.Infof(ctx, "[DocReader]   图片 #%d: OriginalURL=%s", imgIdx, img.OriginalUrl)
@@ -1126,7 +1125,7 @@ func (s *knowledgeService) processChunks(ctx context.Context,
 			logger.Infof(ctx, "[DocReader]   图片 #%d: 位置=[%d-%d]", imgIdx, img.Start, img.End)
 		}
 	}
-	logger.Infof(ctx, "[DocReader] ========== 解析结果概览结束 ==========")
+	logger.Infof(ctx, "[DocReader] ========== Parse Results Summary End ==========")
 
 	// Create chunk objects from proto chunks
 	maxSeq := 0
@@ -2069,20 +2068,20 @@ func (s *knowledgeService) UpdateManualKnowledge(ctx context.Context,
 ) (*types.Knowledge, error) {
 	logger.Info(ctx, "Start updating manual knowledge entry")
 	if payload == nil {
-		return nil, werrors.NewBadRequestError("请求内容不能为空")
+		return nil, werrors.NewBadRequestError("Request content cannot be empty")
 	}
 
 	cleanContent := secutils.CleanMarkdown(payload.Content)
 	if strings.TrimSpace(cleanContent) == "" {
-		return nil, werrors.NewValidationError("内容不能为空")
+		return nil, werrors.NewValidationError("Content cannot be empty")
 	}
 	if len([]rune(cleanContent)) > manualContentMaxLength {
-		return nil, werrors.NewValidationError(fmt.Sprintf("内容长度超出限制（最多%d个字符）", manualContentMaxLength))
+		return nil, werrors.NewValidationError(fmt.Sprintf("Content length exceeds limit (maximum %d characters)", manualContentMaxLength))
 	}
 
 	safeTitle, ok := secutils.ValidateInput(payload.Title)
 	if !ok {
-		return nil, werrors.NewValidationError("标题包含非法字符或超出长度限制")
+		return nil, werrors.NewValidationError("Title contains illegal characters or exceeds length limit")
 	}
 
 	status := strings.ToLower(strings.TrimSpace(payload.Status))
@@ -2090,7 +2089,7 @@ func (s *knowledgeService) UpdateManualKnowledge(ctx context.Context,
 		status = types.ManualKnowledgeStatusDraft
 	}
 	if status != types.ManualKnowledgeStatusDraft && status != types.ManualKnowledgeStatusPublish {
-		return nil, werrors.NewValidationError("状态仅支持 draft 或 publish")
+		return nil, werrors.NewValidationError("Status only supports 'draft' or 'publish'")
 	}
 
 	tenantID := ctx.Value(types.TenantIDContextKey).(uint64)
@@ -2100,7 +2099,7 @@ func (s *knowledgeService) UpdateManualKnowledge(ctx context.Context,
 		return nil, err
 	}
 	if !existing.IsManual() {
-		return nil, werrors.NewBadRequestError("仅支持手工知识的在线编辑")
+		return nil, werrors.NewBadRequestError("Only manual knowledge supports online editing")
 	}
 
 	kb, err := s.kbService.GetKnowledgeBaseByID(ctx, existing.KnowledgeBaseID)
@@ -2125,7 +2124,7 @@ func (s *knowledgeService) UpdateManualKnowledge(ctx context.Context,
 	if safeTitle != "" {
 		existing.Title = safeTitle
 	} else if existing.Title == "" {
-		existing.Title = fmt.Sprintf("手工知识-%s", time.Now().Format("20060102-150405"))
+		existing.Title = fmt.Sprintf("Manual Knowledge-%s", time.Now().Format("20060102-150405"))
 	}
 	existing.FileName = ensureManualFileName(existing.Title)
 	existing.FileType = types.KnowledgeTypeManual
@@ -2685,16 +2684,16 @@ func (s *knowledgeService) UpsertFAQEntries(ctx context.Context,
 	kbID string, payload *types.FAQBatchUpsertPayload,
 ) (string, error) {
 	if payload == nil || len(payload.Entries) == 0 {
-		return "", werrors.NewBadRequestError("FAQ 条目不能为空")
+		return "", werrors.NewBadRequestError("FAQ entries cannot be empty")
 	}
 	if payload.Mode == "" {
 		payload.Mode = types.FAQBatchModeAppend
 	}
 	if payload.Mode != types.FAQBatchModeAppend && payload.Mode != types.FAQBatchModeReplace {
-		return "", werrors.NewBadRequestError("模式仅支持 append 或 replace")
+		return "", werrors.NewBadRequestError("Mode only supports 'append' or 'replace'")
 	}
 
-	// 验证知识库是否存在且有效
+	// Verify that knowledge base exists and is valid
 	kb, err := s.validateFAQKnowledgeBase(ctx, kbID)
 	if err != nil {
 		return "", err
@@ -2702,14 +2701,14 @@ func (s *knowledgeService) UpsertFAQEntries(ctx context.Context,
 
 	tenantID := ctx.Value(types.TenantIDContextKey).(uint64)
 
-	// 检查是否有正在进行的导入任务（通过Redis）
+	// Check if there's an ongoing import task (via Redis)
 	runningTaskID, err := s.getRunningFAQImportTaskID(ctx, kbID)
 	if err != nil {
 		logger.Errorf(ctx, "Failed to check running import task: %v", err)
-		// 检查失败不影响导入，继续执行
+		// Check failure doesn't affect import, continue execution
 	} else if runningTaskID != "" {
 		logger.Warnf(ctx, "Import task already running for KB %s: %s", kbID, runningTaskID)
-		return "", werrors.NewBadRequestError(fmt.Sprintf("该知识库已有导入任务正在进行中（任务ID: %s），请等待完成后再试", runningTaskID))
+		return "", werrors.NewBadRequestError(fmt.Sprintf("This knowledge base already has an import task in progress (Task ID: %s), please wait for completion before retrying", runningTaskID))
 	}
 
 	faqKnowledge, err := s.ensureFAQKnowledge(ctx, tenantID, kb)
@@ -2717,10 +2716,10 @@ func (s *knowledgeService) UpsertFAQEntries(ctx context.Context,
 		return "", fmt.Errorf("failed to ensure FAQ knowledge: %w", err)
 	}
 
-	// 生成UUID作为任务ID
+	// Generate UUID as task ID
 	taskID := uuid.New().String()
 
-	// 初始化导入任务状态到Redis
+	// Initialize import task status to Redis
 	progress := &types.FAQImportProgress{
 		TaskID:      taskID,
 		KBID:        kbID,
@@ -2729,7 +2728,7 @@ func (s *knowledgeService) UpsertFAQEntries(ctx context.Context,
 		Progress:    0,
 		Total:       len(payload.Entries),
 		Processed:   0,
-		Message:     "任务已创建，等待处理",
+		Message:     "Task created, waiting for processing",
 		CreatedAt:   time.Now().Unix(),
 		UpdatedAt:   time.Now().Unix(),
 	}
@@ -2738,10 +2737,10 @@ func (s *knowledgeService) UpsertFAQEntries(ctx context.Context,
 		return "", fmt.Errorf("failed to initialize task: %w", err)
 	}
 
-	// 设置 KB 的运行中任务 ID
+	// Set KB's running task ID
 	if err := s.setRunningFAQImportTaskID(ctx, kbID, taskID); err != nil {
 		logger.Errorf(ctx, "Failed to set running FAQ import task ID: %v", err)
-		// 不影响任务执行，继续
+		// Doesn't affect task execution, continue
 	}
 
 	logger.Infof(ctx, "FAQ import task initialized: %s, kb_id: %s, total entries: %d", taskID, kbID, len(payload.Entries))
@@ -2774,8 +2773,8 @@ func (s *knowledgeService) UpsertFAQEntries(ctx context.Context,
 	return taskID, nil
 }
 
-// calculateAppendOperations 计算Append模式下需要处理的条目，跳过已存在且内容相同的条目
-// 同时过滤掉标准问或相似问与同批次或已有知识库中重复的条目
+// calculateAppendOperations calculates entries to process in Append mode, skipping entries that already exist with identical content
+// Also filters out entries where standard question or similar questions duplicate with same batch or existing knowledge base entries
 func (s *knowledgeService) calculateAppendOperations(ctx context.Context,
 	tenantID uint64, kbID string, entries []types.FAQEntryPayload,
 ) ([]types.FAQEntryPayload, int, error) {
@@ -2855,8 +2854,8 @@ func (s *knowledgeService) calculateAppendOperations(ctx context.Context,
 	return entriesToProcess, skippedCount, nil
 }
 
-// calculateReplaceOperations 计算Replace模式下需要删除、创建、更新的条目
-// 同时过滤掉同批次内标准问或相似问重复的条目
+// calculateReplaceOperations calculates entries to delete, create, and update in Replace mode
+// Also filters out entries with duplicate standard questions or similar questions within the same batch
 func (s *knowledgeService) calculateReplaceOperations(ctx context.Context,
 	tenantID uint64, knowledgeID string, newEntries []types.FAQEntryPayload,
 ) ([]types.FAQEntryPayload, []*types.Chunk, int, error) {

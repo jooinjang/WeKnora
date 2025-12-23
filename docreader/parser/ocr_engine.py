@@ -53,10 +53,8 @@ class PaddleOCRBackend(OCRBackend):
             paddle.device.set_device("cpu")
 
             # Try to detect if CPU supports AVX instruction set
-            # 尝试检测CPU是否支持AVX指令集
             try:
                 # Detect if CPU supports AVX
-                # 检测CPU是否支持AVX
                 if platform.system() == "Linux":
                     try:
                         result = subprocess.run(
@@ -72,7 +70,6 @@ class PaddleOCRBackend(OCRBackend):
                                 "using compatibility mode"
                             )
                             # Further restrict instruction set usage
-                            # 进一步限制指令集使用
                             os.environ["FLAGS_use_avx2"] = "0"
                             os.environ["FLAGS_use_avx"] = "1"
                     except (
@@ -99,9 +96,9 @@ class PaddleOCRBackend(OCRBackend):
                 "use_gpu": False,
                 "text_det_limit_type": "max",
                 "text_det_limit_side_len": 960,
-                "use_doc_orientation_classify": True,  # Enable document orientation classification / 启用文档方向分类
+                "use_doc_orientation_classify": True,  # Enable document orientation classification
                 "use_doc_unwarping": False,
-                "use_textline_orientation": True,  # Enable text line orientation detection / 启用文本行方向检测
+                "use_textline_orientation": True,  # Enable text line orientation detection
                 "text_recognition_model_name": "PP-OCRv4_server_rec",
                 "text_detection_model_name": "PP-OCRv4_server_det",
                 "text_det_thresh": 0.3,
@@ -223,30 +220,30 @@ class NanonetsOCRBackend(OCRBackend):
         self.temperature = 0.0
         self.max_tokens = 15000
         # Prompt for OCR text extraction with specific formatting requirements
-        self.prompt = """## 任务说明
+        self.prompt = """## Task Instructions
 
-请从上传的文档中提取文字内容，严格按自然阅读顺序（从上到下，从左到右）输出，并遵循以下格式规范。
+Please extract text content from the uploaded document, strictly following natural reading order (top to bottom, left to right), and adhere to the following formatting specifications.
 
-### 1. **文本处理**
+### 1. **Text Processing**
 
-* 按正常阅读顺序提取文字，语句流畅自然。
+* Extract text in normal reading order, keeping sentences fluent and natural.
 
-### 2. **表格**
+### 2. **Tables**
 
-* 所有表格统一转换为 **Markdown 表格格式**。
-* 内容保持清晰、对齐整齐，便于阅读。
+* Convert all tables to **Markdown table format**.
+* Keep content clear and well-aligned for easy reading.
 
-### 3. **公式**
+### 3. **Formulas**
 
-* 所有公式转换为 **LaTeX 格式**，使用 `$$公式$$` 包裹。
+* Convert all formulas to **LaTeX format**, wrapped with `$$formula$$`.
 
-### 4. **图片**
+### 4. **Images**
 
-* 忽略图片信息
+* Ignore image information
 
-### 5. **链接**
+### 5. **Links**
 
-* 不要猜测或补全不确定的链接地址。
+* Do not guess or complete uncertain link addresses.
 """
 
     def predict(self, image: Union[str, bytes, Image.Image]) -> str:

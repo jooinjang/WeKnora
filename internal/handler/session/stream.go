@@ -16,15 +16,15 @@ import (
 )
 
 // ContinueStream godoc
-// @Summary      继续流式响应
-// @Description  继续获取正在进行的流式响应
-// @Tags         问答
+// @Summary      Continue stream response
+// @Description  Continue to get ongoing stream response
+// @Tags         Q&A
 // @Accept       json
 // @Produce      text/event-stream
-// @Param        session_id  path      string  true  "会话ID"
-// @Param        message_id  query     string  true  "消息ID"
-// @Success      200         {object}  map[string]interface{}  "流式响应"
-// @Failure      404         {object}  errors.AppError         "会话或消息不存在"
+// @Param        session_id  path      string  true  "Session ID"
+// @Param        message_id  query     string  true  "Message ID"
+// @Success      200         {object}  map[string]interface{}  "Stream response"
+// @Failure      404         {object}  errors.AppError         "Session or message not found"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /sessions/{session_id}/continue [get]
@@ -176,15 +176,15 @@ func (h *Handler) ContinueStream(c *gin.Context) {
 }
 
 // StopSession godoc
-// @Summary      停止生成
-// @Description  停止当前正在进行的生成任务
-// @Tags         问答
+// @Summary      Stop generation
+// @Description  Stop current ongoing generation task
+// @Tags         Q&A
 // @Accept       json
 // @Produce      json
-// @Param        session_id  path      string              true  "会话ID"
-// @Param        request     body      StopSessionRequest  true  "停止请求"
-// @Success      200         {object}  map[string]interface{}  "停止成功"
-// @Failure      404         {object}  errors.AppError         "会话或消息不存在"
+// @Param        session_id  path      string              true  "Session ID"
+// @Param        request     body      StopSessionRequest  true  "Stop request"
+// @Success      200         {object}  map[string]interface{}  "Stop successful"
+// @Failure      404         {object}  errors.AppError         "Session or message not found"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /sessions/{session_id}/stop [post]

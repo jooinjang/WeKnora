@@ -1077,7 +1077,7 @@ func (t *KnowledgeSearchTool) formatOutput(
 			result.Content,
 		)
 
-		// 解析并输出关联的图片信息
+		// Parse and output related image information
 		if result.ImageInfo != "" {
 			var imageInfos []types.ImageInfo
 			if err := json.Unmarshal([]byte(result.ImageInfo), &imageInfos); err == nil && len(imageInfos) > 0 {
@@ -1128,11 +1128,11 @@ func (t *KnowledgeSearchTool) formatOutput(
 
 		last := formattedResults[len(formattedResults)-1]
 
-		// 添加图片信息到结构化数据
+		// Add image information to structured data
 		if result.ImageInfo != "" {
 			var imageInfos []types.ImageInfo
 			if err := json.Unmarshal([]byte(result.ImageInfo), &imageInfos); err == nil && len(imageInfos) > 0 {
-				// 构建简化的图片信息列表
+				// Build simplified image information list
 				imageList := make([]map[string]string, 0, len(imageInfos))
 				for _, img := range imageInfos {
 					imgData := make(map[string]string)
@@ -1169,7 +1169,7 @@ func (t *KnowledgeSearchTool) formatOutput(
 	}
 
 	// Add statistics and recommendations for each knowledge
-	output += "\n=== 检索统计与建议 ===\n\n"
+	output += "\n=== Retrieval Statistics and Recommendations ===\n\n"
 	for knowledgeID, retrievedChunks := range knowledgeChunkMap {
 		totalChunks := knowledgeTotalMap[knowledgeID]
 		retrievedCount := len(retrievedChunks)
@@ -1179,10 +1179,10 @@ func (t *KnowledgeSearchTool) formatOutput(
 			percentage := float64(retrievedCount) / float64(totalChunks) * 100
 			remaining := totalChunks - int64(retrievedCount)
 
-			output += fmt.Sprintf("文档: %s (%s)\n", title, knowledgeID)
-			output += fmt.Sprintf("  总 Chunk 数: %d\n", totalChunks)
-			output += fmt.Sprintf("  已召回: %d 个 (%.1f%%)\n", retrievedCount, percentage)
-			output += fmt.Sprintf("  未召回: %d 个\n", remaining)
+			output += fmt.Sprintf("Document: %s (%s)\n", title, knowledgeID)
+			output += fmt.Sprintf("  Total Chunks: %d\n", totalChunks)
+			output += fmt.Sprintf("  Retrieved: %d (%.1f%%)\n", retrievedCount, percentage)
+			output += fmt.Sprintf("  Not Retrieved: %d\n", remaining)
 
 		}
 	}
@@ -1224,13 +1224,13 @@ type chunkRange struct {
 	end   int
 }
 
-// getEnrichedPassage 合并Content和ImageInfo的文本内容
+// getEnrichedPassage merges Content and ImageInfo text content
 func (t *KnowledgeSearchTool) getEnrichedPassage(ctx context.Context, result *types.SearchResult) string {
 	if result.ImageInfo == "" {
 		return result.Content
 	}
 
-	// 解析ImageInfo
+	// Parse ImageInfo
 	var imageInfos []types.ImageInfo
 	err := json.Unmarshal([]byte(result.ImageInfo), &imageInfos)
 	if err != nil {
@@ -1242,14 +1242,14 @@ func (t *KnowledgeSearchTool) getEnrichedPassage(ctx context.Context, result *ty
 		return result.Content
 	}
 
-	// 提取所有图片的描述和OCR文本
+	// Extract descriptions and OCR text from all images
 	var imageTexts []string
 	for _, img := range imageInfos {
 		if img.Caption != "" {
-			imageTexts = append(imageTexts, fmt.Sprintf("图片描述: %s", img.Caption))
+			imageTexts = append(imageTexts, fmt.Sprintf("Image description: %s", img.Caption))
 		}
 		if img.OCRText != "" {
-			imageTexts = append(imageTexts, fmt.Sprintf("图片文本: %s", img.OCRText))
+			imageTexts = append(imageTexts, fmt.Sprintf("Image text: %s", img.OCRText))
 		}
 	}
 
@@ -1257,7 +1257,7 @@ func (t *KnowledgeSearchTool) getEnrichedPassage(ctx context.Context, result *ty
 		return result.Content
 	}
 
-	// 组合内容和图片信息
+	// Combine content and image information
 	combinedText := result.Content
 	if combinedText != "" {
 		combinedText += "\n\n"

@@ -87,7 +87,7 @@ type RerankerConfig struct {
 
 // NewReranker creates a reranker
 func NewReranker(config *RerankerConfig) (Reranker, error) {
-	// 根据URL判断模型来源，而不是依赖Source字段
+	// Determine model source based on URL rather than relying on the Source field
 	if strings.Contains(
 		config.BaseURL,
 		"https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank",

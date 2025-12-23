@@ -89,18 +89,18 @@ func AvailablePlaceholders() []PlaceholderDefinition {
 	return []PlaceholderDefinition{
 		{
 			Name:        "knowledge_bases",
-			Label:       "知识库列表",
-			Description: "自动格式化为表格形式的知识库列表，包含知识库名称、描述、文档数量、最近添加的文档等信息",
+			Label:       "Knowledge Base List",
+			Description: "Auto-formatted table of knowledge bases including name, description, document count, and recently added documents",
 		},
 		{
 			Name:        "web_search_status",
-			Label:       "网络检索模式开关状态",
-			Description: "网络检索（web_search）工具是否启用的状态说明，值为 Enabled 或 Disabled",
+			Label:       "Web Search Status",
+			Description: "Status of the web_search tool, value is Enabled or Disabled",
 		},
 		{
 			Name:        "current_time",
-			Label:       "当前系统时间",
-			Description: "格式为 RFC3339 的当前系统时间，用于帮助模型感知实时性",
+			Label:       "Current System Time",
+			Description: "Current system time in RFC3339 format to help the model perceive real-time context",
 		},
 	}
 }

@@ -613,7 +613,7 @@ var stopwords = map[string]struct{}{
 	"who": {}, "whom": {}, "whose": {},
 }
 
-// Question words in Chinese
+// Question words pattern (Chinese)
 var questionWords = regexp.MustCompile(`^(什么是|什么|如何|怎么|怎样|为什么|为何|哪个|哪些|谁|何时|何地|请问|请告诉我|帮我|我想知道|我想了解)`)
 
 func extractKeywords(text string) []string {

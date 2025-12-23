@@ -8,9 +8,8 @@ import (
 	"unicode/utf8"
 )
 
-// XSS 防护相关正则表达式
+// XSS protection regex patterns
 var (
-	// 匹配潜在的 XSS 攻击模式
 	xssPatterns = []*regexp.Regexp{
 		regexp.MustCompile(`(?i)<script[^>]*>.*?</script>`),
 		regexp.MustCompile(`(?i)<iframe[^>]*>.*?</iframe>`),
@@ -31,30 +30,26 @@ var (
 	}
 )
 
-// SanitizeHTML 清理 HTML 内容，防止 XSS 攻击
+// SanitizeHTML cleans HTML content to prevent XSS attacks
 func SanitizeHTML(input string) string {
 	if input == "" {
 		return ""
 	}
 
-	// 检查输入长度
 	if len(input) > 10000 {
 		input = input[:10000]
 	}
 
-	// 检查是否包含潜在的 XSS 攻击
 	for _, pattern := range xssPatterns {
 		if pattern.MatchString(input) {
-			// 如果包含恶意内容，进行 HTML 转义
 			return html.EscapeString(input)
 		}
 	}
 
-	// 如果内容相对安全，返回原内容
 	return input
 }
 
-// EscapeHTML 转义 HTML 特殊字符
+// EscapeHTML escapes HTML special characters
 func EscapeHTML(input string) string {
 	if input == "" {
 		return ""
@@ -62,30 +57,29 @@ func EscapeHTML(input string) string {
 	return html.EscapeString(input)
 }
 
-// ValidateInput 验证用户输入
+// ValidateInput validates user input
 func ValidateInput(input string) (string, bool) {
 	if input == "" {
 		return "", true
 	}
 
-	// 检查长度
 	if len(input) > 10000 {
 		return "", false
 	}
 
-	// 检查是否包含控制字符
+	// Check for control characters
 	for _, r := range input {
 		if r < 32 && r != 9 && r != 10 && r != 13 {
 			return "", false
 		}
 	}
 
-	// 检查 UTF-8 有效性
+	// Check UTF-8 validity
 	if !utf8.ValidString(input) {
 		return "", false
 	}
 
-	// 检查是否包含潜在的 XSS 攻击
+	// Check for potential XSS attacks
 	for _, pattern := range xssPatterns {
 		if pattern.MatchString(input) {
 			return "", false
@@ -95,24 +89,21 @@ func ValidateInput(input string) (string, bool) {
 	return strings.TrimSpace(input), true
 }
 
-// IsValidURL 验证 URL 是否安全
+// IsValidURL validates if URL is safe
 func IsValidURL(url string) bool {
 	if url == "" {
 		return false
 	}
 
-	// 检查长度
 	if len(url) > 2048 {
 		return false
 	}
 
-	// 检查协议
 	if !strings.HasPrefix(strings.ToLower(url), "http://") &&
 		!strings.HasPrefix(strings.ToLower(url), "https://") {
 		return false
 	}
 
-	// 检查是否包含恶意内容
 	for _, pattern := range xssPatterns {
 		if pattern.MatchString(url) {
 			return false
@@ -122,13 +113,12 @@ func IsValidURL(url string) bool {
 	return true
 }
 
-// IsValidImageURL 验证图片 URL 是否安全
+// IsValidImageURL validates if image URL is safe
 func IsValidImageURL(url string) bool {
 	if !IsValidURL(url) {
 		return false
 	}
 
-	// 检查是否为图片文件
 	imageExtensions := []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".ico"}
 	lowerURL := strings.ToLower(url)
 
@@ -141,13 +131,12 @@ func IsValidImageURL(url string) bool {
 	return false
 }
 
-// CleanMarkdown 清理 Markdown 内容
+// CleanMarkdown cleans Markdown content
 func CleanMarkdown(input string) string {
 	if input == "" {
 		return ""
 	}
 
-	// 移除潜在的恶意脚本
 	cleaned := input
 	for _, pattern := range xssPatterns {
 		cleaned = pattern.ReplaceAllString(cleaned, "")
@@ -156,40 +145,31 @@ func CleanMarkdown(input string) string {
 	return cleaned
 }
 
-// SanitizeForDisplay 为显示清理内容
+// SanitizeForDisplay cleans content for display
 func SanitizeForDisplay(input string) string {
 	if input == "" {
 		return ""
 	}
 
-	// 首先清理 Markdown
 	cleaned := CleanMarkdown(input)
-
-	// 然后进行 HTML 转义
 	escaped := html.EscapeString(cleaned)
-
 	return escaped
 }
 
-// SanitizeForLog 清理日志输入,防止日志注入攻击
-// 日志注入攻击是指攻击者通过在输入中插入换行符和其他控制字符,
-// 伪造日志条目,可能导致日志分析工具误判或隐藏恶意活动
+// SanitizeForLog cleans log input to prevent log injection attacks
 func SanitizeForLog(input string) string {
 	if input == "" {
 		return ""
 	}
 
-	// 替换换行符(LF, CR, CRLF)为空格,防止日志注入
+	// Replace newlines to prevent log injection
 	sanitized := strings.ReplaceAll(input, "\n", " ")
 	sanitized = strings.ReplaceAll(sanitized, "\r", " ")
-
-	// 替换制表符为空格
 	sanitized = strings.ReplaceAll(sanitized, "\t", " ")
 
-	// 移除其他控制字符(ASCII 0-31,除了空格已处理的)
+	// Remove control characters
 	var builder strings.Builder
 	for _, r := range sanitized {
-		// 保留可打印字符和常用Unicode字符
 		if r >= 32 || r == ' ' {
 			builder.WriteRune(r)
 		}
@@ -197,7 +177,6 @@ func SanitizeForLog(input string) string {
 
 	sanitized = builder.String()
 
-	// 限制长度,防止日志溢出
 	if len(sanitized) > 1000 {
 		sanitized = sanitized[:1000] + "...[truncated]"
 	}
@@ -205,7 +184,7 @@ func SanitizeForLog(input string) string {
 	return sanitized
 }
 
-// SanitizeForLogArray 清理日志输入数组,防止日志注入攻击
+// SanitizeForLogArray cleans log input array to prevent log injection attacks
 func SanitizeForLogArray(input []string) []string {
 	if len(input) == 0 {
 		return []string{}

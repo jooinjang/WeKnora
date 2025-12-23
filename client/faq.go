@@ -289,9 +289,9 @@ func (c *Client) SearchFAQEntries(ctx context.Context,
 
 // ExportFAQEntries exports all FAQ entries from a knowledge base as CSV data.
 // The CSV format matches the import example format with 8 columns:
-// 分类(必填), 问题(必填), 相似问题(选填-多个用##分隔), 反例问题(选填-多个用##分隔),
-// 机器人回答(必填-多个用##分隔), 是否全部回复(选填-默认FALSE), 是否停用(选填-默认FALSE),
-// 是否禁止被推荐(选填-默认False 可被推荐)
+// Category (required), Question (required), Similar Questions (optional, separated by ##), Negative Questions (optional, separated by ##),
+// Bot Answers (required, separated by ##), Reply All (optional, default FALSE), Disabled (optional, default FALSE),
+// Prohibit Recommendations (optional, default False allows recommendations)
 func (c *Client) ExportFAQEntries(ctx context.Context, knowledgeBaseID string) ([]byte, error) {
 	path := fmt.Sprintf("/api/v1/knowledge-bases/%s/faq/entries/export", knowledgeBaseID)
 	resp, err := c.doRequest(ctx, http.MethodGet, path, nil, nil)

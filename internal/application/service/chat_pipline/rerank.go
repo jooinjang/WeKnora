@@ -79,7 +79,7 @@ func (p *PluginRerank) OnEvent(ctx context.Context,
 			})
 			continue
 		}
-		// 合并Content和ImageInfo的文本内容
+		// Merge Content and ImageInfo text content
 		passage := getEnrichedPassage(ctx, result)
 		passages = append(passages, passage)
 		candidatesToRerank = append(candidatesToRerank, result)
@@ -367,12 +367,12 @@ func applyMMR(
 	return selected
 }
 
-// getEnrichedPassage 合并Content、ImageInfo和GeneratedQuestions的文本内容
+// getEnrichedPassage merges Content, ImageInfo, and GeneratedQuestions text content
 func getEnrichedPassage(ctx context.Context, result *types.SearchResult) string {
 	combinedText := result.Content
 	var enrichments []string
 
-	// 解析ImageInfo
+	// Parse ImageInfo
 	if result.ImageInfo != "" {
 		var imageInfos []types.ImageInfo
 		err := json.Unmarshal([]byte(result.ImageInfo), &imageInfos)
@@ -381,19 +381,19 @@ func getEnrichedPassage(ctx context.Context, result *types.SearchResult) string 
 				"error": err.Error(),
 			})
 		} else {
-			// 提取所有图片的描述和OCR文本
+			// Extract descriptions and OCR text from all images
 			for _, img := range imageInfos {
 				if img.Caption != "" {
-					enrichments = append(enrichments, fmt.Sprintf("图片描述: %s", img.Caption))
+					enrichments = append(enrichments, fmt.Sprintf("Image description: %s", img.Caption))
 				}
 				if img.OCRText != "" {
-					enrichments = append(enrichments, fmt.Sprintf("图片文本: %s", img.OCRText))
+					enrichments = append(enrichments, fmt.Sprintf("Image text: %s", img.OCRText))
 				}
 			}
 		}
 	}
 
-	// 解析ChunkMetadata中的GeneratedQuestions
+	// Parse GeneratedQuestions from ChunkMetadata
 	if len(result.ChunkMetadata) > 0 {
 		var docMeta types.DocumentChunkMetadata
 		err := json.Unmarshal(result.ChunkMetadata, &docMeta)
@@ -402,7 +402,7 @@ func getEnrichedPassage(ctx context.Context, result *types.SearchResult) string 
 				"error": err.Error(),
 			})
 		} else if questionStrings := docMeta.GetQuestionStrings(); len(questionStrings) > 0 {
-			enrichments = append(enrichments, fmt.Sprintf("相关问题: %s", strings.Join(questionStrings, "; ")))
+			enrichments = append(enrichments, fmt.Sprintf("Related questions: %s", strings.Join(questionStrings, "; ")))
 		}
 	}
 
@@ -410,7 +410,7 @@ func getEnrichedPassage(ctx context.Context, result *types.SearchResult) string 
 		return combinedText
 	}
 
-	// 组合内容和增强信息
+	// Combine content and enrichment information
 	if combinedText != "" {
 		combinedText += "\n\n"
 	}

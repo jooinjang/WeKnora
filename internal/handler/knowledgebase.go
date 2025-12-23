@@ -38,15 +38,15 @@ func NewKnowledgeBaseHandler(
 }
 
 // HybridSearch godoc
-// @Summary      混合搜索
-// @Description  在知识库中执行向量和关键词混合搜索
-// @Tags         知识库
+// @Summary      Hybrid search
+// @Description  Execute hybrid search with vector and keyword in knowledge base
+// @Tags         Knowledge Base
 // @Accept       json
 // @Produce      json
-// @Param        id       path      string             true  "知识库ID"
-// @Param        request  body      types.SearchParams true  "搜索参数"
-// @Success      200      {object}  map[string]interface{}  "搜索结果"
-// @Failure      400      {object}  errors.AppError         "请求参数错误"
+// @Param        id       path      string             true  "Knowledge base ID"
+// @Param        request  body      types.SearchParams true  "Search parameters"
+// @Success      200      {object}  map[string]interface{}  "Search results"
+// @Failure      400      {object}  errors.AppError         "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases/{id}/hybrid-search [get]
@@ -91,14 +91,14 @@ func (h *KnowledgeBaseHandler) HybridSearch(c *gin.Context) {
 }
 
 // CreateKnowledgeBase godoc
-// @Summary      创建知识库
-// @Description  创建新的知识库
-// @Tags         知识库
+// @Summary      Create knowledge base
+// @Description  Create a new knowledge base
+// @Tags         Knowledge Base
 // @Accept       json
 // @Produce      json
-// @Param        request  body      types.KnowledgeBase  true  "知识库信息"
-// @Success      201      {object}  map[string]interface{}  "创建的知识库"
-// @Failure      400      {object}  errors.AppError         "请求参数错误"
+// @Param        request  body      types.KnowledgeBase  true  "Knowledge base information"
+// @Success      201      {object}  map[string]interface{}  "Created knowledge base"
+// @Failure      400      {object}  errors.AppError         "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases [post]
@@ -178,15 +178,15 @@ func (h *KnowledgeBaseHandler) validateAndGetKnowledgeBase(c *gin.Context) (*typ
 }
 
 // GetKnowledgeBase godoc
-// @Summary      获取知识库详情
-// @Description  根据ID获取知识库详情
-// @Tags         知识库
+// @Summary      Get knowledge base details
+// @Description  Get knowledge base details by ID
+// @Tags         Knowledge Base
 // @Accept       json
 // @Produce      json
-// @Param        id   path      string  true  "知识库ID"
-// @Success      200  {object}  map[string]interface{}  "知识库详情"
-// @Failure      400  {object}  errors.AppError         "请求参数错误"
-// @Failure      404  {object}  errors.AppError         "知识库不存在"
+// @Param        id   path      string  true  "Knowledge base ID"
+// @Success      200  {object}  map[string]interface{}  "Knowledge base details"
+// @Failure      400  {object}  errors.AppError         "Invalid request parameters"
+// @Failure      404  {object}  errors.AppError         "Knowledge base not found"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases/{id} [get]
@@ -204,13 +204,13 @@ func (h *KnowledgeBaseHandler) GetKnowledgeBase(c *gin.Context) {
 }
 
 // ListKnowledgeBases godoc
-// @Summary      获取知识库列表
-// @Description  获取当前租户的所有知识库
-// @Tags         知识库
+// @Summary      Get knowledge base list
+// @Description  Get all knowledge bases for the current tenant
+// @Tags         Knowledge Base
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  map[string]interface{}  "知识库列表"
-// @Failure      500  {object}  errors.AppError         "服务器错误"
+// @Success      200  {object}  map[string]interface{}  "Knowledge base list"
+// @Failure      500  {object}  errors.AppError         "Server error"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases [get]
@@ -239,15 +239,15 @@ type UpdateKnowledgeBaseRequest struct {
 }
 
 // UpdateKnowledgeBase godoc
-// @Summary      更新知识库
-// @Description  更新知识库的名称、描述和配置
-// @Tags         知识库
+// @Summary      Update knowledge base
+// @Description  Update knowledge base name, description and configuration
+// @Tags         Knowledge Base
 // @Accept       json
 // @Produce      json
-// @Param        id       path      string                     true  "知识库ID"
-// @Param        request  body      UpdateKnowledgeBaseRequest true  "更新请求"
-// @Success      200      {object}  map[string]interface{}     "更新后的知识库"
-// @Failure      400      {object}  errors.AppError            "请求参数错误"
+// @Param        id       path      string                     true  "Knowledge base ID"
+// @Param        request  body      UpdateKnowledgeBaseRequest true  "Update request"
+// @Success      200      {object}  map[string]interface{}     "Updated knowledge base"
+// @Failure      400      {object}  errors.AppError            "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases/{id} [put]
@@ -290,14 +290,14 @@ func (h *KnowledgeBaseHandler) UpdateKnowledgeBase(c *gin.Context) {
 }
 
 // DeleteKnowledgeBase godoc
-// @Summary      删除知识库
-// @Description  删除指定的知识库及其所有内容
-// @Tags         知识库
+// @Summary      Delete knowledge base
+// @Description  Delete specified knowledge base and all its contents
+// @Tags         Knowledge Base
 // @Accept       json
 // @Produce      json
-// @Param        id   path      string  true  "知识库ID"
-// @Success      200  {object}  map[string]interface{}  "删除成功"
-// @Failure      400  {object}  errors.AppError         "请求参数错误"
+// @Param        id   path      string  true  "Knowledge base ID"
+// @Success      200  {object}  map[string]interface{}  "Delete successful"
+// @Failure      400  {object}  errors.AppError         "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases/{id} [delete]
@@ -344,14 +344,14 @@ type CopyKnowledgeBaseResponse struct {
 }
 
 // CopyKnowledgeBase godoc
-// @Summary      复制知识库
-// @Description  将一个知识库的内容复制到另一个知识库（异步任务）
-// @Tags         知识库
+// @Summary      Copy knowledge base
+// @Description  Copy contents from one knowledge base to another (asynchronous task)
+// @Tags         Knowledge Base
 // @Accept       json
 // @Produce      json
-// @Param        request  body      CopyKnowledgeBaseRequest   true  "复制请求"
-// @Success      200      {object}  map[string]interface{}     "任务ID"
-// @Failure      400      {object}  errors.AppError            "请求参数错误"
+// @Param        request  body      CopyKnowledgeBaseRequest   true  "Copy request"
+// @Success      200      {object}  map[string]interface{}     "Task ID"
+// @Failure      400      {object}  errors.AppError            "Invalid request parameters"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases/copy [post]
@@ -430,14 +430,14 @@ func (h *KnowledgeBaseHandler) CopyKnowledgeBase(c *gin.Context) {
 }
 
 // GetKBCloneProgress godoc
-// @Summary      获取知识库复制进度
-// @Description  获取知识库复制任务的进度
-// @Tags         知识库
+// @Summary      Get knowledge base copy progress
+// @Description  Get the progress of knowledge base copy task
+// @Tags         Knowledge Base
 // @Accept       json
 // @Produce      json
-// @Param        task_id  path      string  true  "任务ID"
-// @Success      200      {object}  map[string]interface{}  "进度信息"
-// @Failure      404      {object}  errors.AppError         "任务不存在"
+// @Param        task_id  path      string  true  "Task ID"
+// @Success      200      {object}  map[string]interface{}  "Progress information"
+// @Failure      404      {object}  errors.AppError         "Task not found"
 // @Security     Bearer
 // @Security     ApiKeyAuth
 // @Router       /knowledge-bases/copy/progress/{task_id} [get]
